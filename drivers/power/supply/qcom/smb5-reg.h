@@ -223,6 +223,19 @@ enum {
 #define SINGLE_DECREMENT_BIT			BIT(1)
 #define SINGLE_INCREMENT_BIT			BIT(0)
 
+/*HS70 add for HS70-919 import Handle QC2.0 charger collapse patch by qianyingdong at 2019/11/18 start*/
+#ifdef CONFIG_ARCH_MSM8953
+#define HVDCP_PULSE_COUNT_MAX_REG              (USBIN_BASE + 0x5B)
+#define HVDCP_PULSE_COUNT_MAX_QC2_MASK         GENMASK(7, 6)
+enum {
+	HVDCP_PULSE_COUNT_MAX_QC2_5V = 0,
+	HVDCP_PULSE_COUNT_MAX_QC2_9V = 0x40,
+	HVDCP_PULSE_COUNT_MAX_QC2_12V = 0x80,
+	HVDCP_PULSE_COUNT_MAX_QC2_INVALID = 0xC0
+};
+#endif
+/*HS70 add for HS70-919 import Handle QC2.0 charger collapse patch by qianyingdong at 2019/11/18 end*/
+
 #define USBIN_ADAPTER_ALLOW_CFG_REG		(USBIN_BASE + 0x60)
 enum {
 	USBIN_ADAPTER_ALLOW_5V		= 0,
@@ -259,6 +272,12 @@ enum {
 #define USBIN_CURRENT_LIMIT_CFG_REG		(USBIN_BASE + 0x70)
 
 #define USBIN_AICL_OPTIONS_CFG_REG		(USBIN_BASE + 0x80)
+/*HS70 add for HS70-919 import Handle QC2.0 charger collapse patch by qianyingdong at 2019/11/18 start*/
+#ifdef CONFIG_ARCH_MSM8953
+#define SUSPEND_ON_COLLAPSE_USBIN_BIT		BIT(7)
+#endif
+/*HS70 add for HS70-919 import Handle QC2.0 charger collapse patch by qianyingdong at 2019/11/18 end*/
+
 #define USBIN_AICL_ADC_EN_BIT			BIT(3)
 
 #define USBIN_5V_AICL_THRESHOLD_REG		(USBIN_BASE + 0x81)
@@ -314,7 +333,8 @@ enum {
 #define U_USB_FLOAT2_BIT			BIT(0)
 
 #define TYPE_C_MODE_CFG_REG			(TYPEC_BASE + 0x44)
-#define TYPEC_POWER_ROLE_CMD_MASK		GENMASK(2, 1)
+#define TYPEC_TRY_MODE_MASK			GENMASK(4, 3)
+#define TYPEC_POWER_ROLE_CMD_MASK		GENMASK(2, 0)
 #define EN_TRY_SNK_BIT				BIT(4)
 #define EN_SRC_ONLY_BIT				BIT(2)
 #define EN_SNK_ONLY_BIT				BIT(1)

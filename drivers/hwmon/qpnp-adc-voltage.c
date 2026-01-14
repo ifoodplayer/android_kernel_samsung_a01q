@@ -235,7 +235,10 @@ static struct qpnp_vadc_scale_fn vadc_scale_fn[] = {
 	[SCALE_SMB1390_DIE_TEMP] = {qpnp_adc_scale_die_temp_1390},
 	[SCALE_BATT_THERM_TEMP_PU30] = {qpnp_adc_batt_therm_pu30},
 	[SCALE_BATT_THERM_TEMP_PU400] = {qpnp_adc_batt_therm_pu400},
-	[SCALE_BATT_THERM_TEMP_QRD_215] = {qpnp_adc_batt_therm_qrd_215}
+	[SCALE_BATT_THERM_TEMP_QRD_215] = {qpnp_adc_batt_therm_qrd_215},
+       /* Huaqin add for HS60-37 Configure battery NTC for charging by gaochao at 2019/07/11 start */
+	[SCALE_BATT_THERM_B3435_PU30] = {qpnp_adc_batt_therm_B3435_pu30},
+       /* Huaqin add for HS60-37 Configure battery NTC for charging by gaochao at 2019/07/11 end */
 };
 
 static struct qpnp_vadc_rscale_fn adc_vadc_rscale_fn[] = {

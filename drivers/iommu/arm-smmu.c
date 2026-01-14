@@ -250,6 +250,7 @@ enum arm_smmu_s2cr_privcfg {
 #define ARM_SMMU_CB_FSRRESTORE		0x5c
 #define ARM_SMMU_CB_FAR			0x60
 #define ARM_SMMU_CB_FSYNR0		0x68
+#define ARM_SMMU_CB_FSYNR1		0x6C
 #define ARM_SMMU_CB_S1_TLBIVA		0x600
 #define ARM_SMMU_CB_S1_TLBIASID		0x610
 #define ARM_SMMU_CB_S1_TLBIALL		0x618
@@ -274,6 +275,8 @@ enum arm_smmu_s2cr_privcfg {
 #define SCTLR_AFE			(1 << 2)
 #define SCTLR_TRE			(1 << 1)
 #define SCTLR_M				(1 << 0)
+
+#include <linux/sec_debug.h>
 
 #define ARM_MMU500_ACTLR_CPRE		(1 << 1)
 
@@ -1450,6 +1453,7 @@ static irqreturn_t arm_smmu_context_fault(int irq, void *dev)
 {
 	int flags, ret, tmp;
 	u32 fsr, fsynr, resume;
+	u32 fsynr0, fsynr1;	/* FIXME: sec_debug compatibility */
 	unsigned long iova;
 	struct iommu_domain *domain = dev;
 	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
@@ -1483,10 +1487,15 @@ static irqreturn_t arm_smmu_context_fault(int irq, void *dev)
 	if (fatal_asf && (fsr & FSR_ASF)) {
 		dev_err(smmu->dev,
 			"Took an address size fault.  Refusing to recover.\n");
+
+		sec_debug_save_smmu_info_asf_fatal();
+
 		BUG();
 	}
 
 	fsynr = readl_relaxed(cb_base + ARM_SMMU_CB_FSYNR0);
+	fsynr0 = fsynr;
+	fsynr1 = readl_relaxed(cb_base + ARM_SMMU_CB_FSYNR1);
 	flags = fsynr & FSYNR0_WNR ? IOMMU_FAULT_WRITE : IOMMU_FAULT_READ;
 	if (fsr & FSR_TF)
 		flags |= IOMMU_FAULT_TRANSLATION;
@@ -1549,6 +1558,9 @@ static irqreturn_t arm_smmu_context_fault(int irq, void *dev)
 		if (!non_fatal_fault) {
 			dev_err(smmu->dev,
 				"Unhandled arm-smmu context fault!\n");
+
+			sec_debug_save_smmu_info_fatal();
+
 			BUG();
 		}
 	}

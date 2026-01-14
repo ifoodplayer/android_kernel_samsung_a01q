@@ -1058,6 +1058,12 @@ static int task_blocks_on_rt_mutex(struct rt_mutex *lock,
  *
  * Called with lock->wait_lock held and interrupts disabled.
  */
+
+extern struct rt_mutex uid_lock;
+extern struct task_struct *uid_last_waiter;
+extern unsigned long uid_last_waiter_wake_q;
+extern unsigned long uid_last_waiter_wake_up_q;
+
 static void mark_wakeup_next_waiter(struct wake_q_head *wake_q,
 				    struct rt_mutex *lock)
 {
@@ -1088,6 +1094,11 @@ static void mark_wakeup_next_waiter(struct wake_q_head *wake_q,
 	raw_spin_unlock(&current->pi_lock);
 
 	wake_q_add(wake_q, waiter->task);
+
+	if(lock == &uid_lock) {
+		pr_info("%s: waiter %s (%d)\n", __func__, waiter->task->comm, waiter->task->pid);
+		uid_last_waiter = waiter->task, uid_last_waiter_wake_q = jiffies;
+	}
 }
 
 /*
@@ -1479,8 +1490,25 @@ rt_mutex_fastunlock(struct rt_mutex *lock,
 	} else {
 		bool deboost = slowfn(lock, &wake_q);
 
+		if(lock == &uid_lock) {
+			struct wake_q_node *node = wake_q.first;
+
+			while (node != WAKE_Q_TAIL) {
+				struct task_struct *task;
+
+				task = container_of(node, struct task_struct, wake_q);
+				BUG_ON(!task);
+				/* task can safely be re-inserted now */
+				node = node->next;
+				//show_stack(task, NULL);
+				pr_info("%s: waiter %s (%d)\n", __func__, task->comm, task->pid);
+			}
+		}
+
 		wake_up_q(&wake_q);
 
+		if(lock == &uid_lock)
+			uid_last_waiter_wake_up_q = jiffies;
 		/* Undo pi boosting if necessary: */
 		if (deboost)
 			rt_mutex_adjust_prio(current);
@@ -1824,3 +1852,4 @@ bool rt_mutex_cleanup_proxy_lock(struct rt_mutex *lock,
 
 	return cleanup;
 }
+
