@@ -1,0 +1,12 @@
+config SEC_A01Q_PROJECT
+	default n
+	bool "Samsung A01Q Project"
+	help
+	  Support for Samsung ZQL1695 A01Q Project
+
+config MACH_A01Q_EUR_OPEN
+	default n
+	bool "Samsung A01Q EUR OPEN"
+	help
+	  Support for Samsung ZQL1695 A01Q EUR OPEN device.
+
